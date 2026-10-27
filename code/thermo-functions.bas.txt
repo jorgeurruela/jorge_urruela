@@ -1,0 +1,67 @@
+Function RedlichKwong(Zest, epsilon, beta, sigma, q)
+RedlichKwong = beta + (Zest + epsilon * beta) * (Zest + sigma * beta) * ((1 + beta - Zest) / q / beta)
+End Function
+Function alfa_SRK(Tr, Omega)
+alfa_SRK = (1 + (0.48 + 1.574 * Omega - 0.176 * Omega ^ 2) * (1 - Tr ^ 0.5)) ^ 2
+End Function
+Function alfa_PR(Tr, Omega)
+alfa_PR = (1 + (0.37464 + 1.5422 * Omega - 0.26992 * Omega ^ 2) * (1 - Tr ^ 0.5)) ^ 2
+End Function
+Function intcalorsensible(T0, T, A, B, C, D)
+tao = T / T0
+intcalorsensible = A * T0 * (tao - 1) + B / 2 * T0 ^ 2 * (tao ^ 2 - 1) + C / 3 * T0 ^ 3 * (tao ^ 3 - 1) + D / T0 * (tao - 1) / tao
+End Function
+Function CpH(T0, T, A, B, C, D, R)
+tao = T / T0
+CpH = R * (A + B / 2 * T0 * (tao + 1) + C / 3 * T0 ^ 2 * (tao ^ 2 + tao + 1) + D / tao / T0 ^ 2)
+End Function
+Function AntoinePsat_kPa(A, B, C, T_°C)
+AntoinePsat_kPa = A - B / (T_°C + C)
+End Function
+Function RiedelDHn_divR(Tn, Tc, Pc)
+RiedelDHn_divR = Tn * 1.092 * (WorksheetFunction.Ln(Pc) - 1.013) / (0.93 - Tn / Tc)
+End Function
+Function HResB(Tr, Pr, Omega)
+HResB = Pr * (0.083 - 0.422 / Tr ^ 1.6 - Tr * 0.675 / Tr ^ 2.6 + Omega * (0.139 - 0.172 / Tr ^ 4.2 - Tr * 0.722 / Tr ^ 5.2))
+End Function
+Function SResB(Tr, Pr, Omega)
+SResB = -Pr * (0.675 / Tr ^ 2.6 + Omega * 0.722 / Tr ^ 5.2)
+End Function
+Function deltaSgi(T1, T2, A, B, C, D, P1, P2, R)
+deltaT = T2 - T1
+deltaSgi = R * (A * Log(T2 / T1) + B * deltaT + C * T2 ^ 2 / 2 - C * T1 ^ 2 / 2 - D / 2 / T2 ^ 2 + D / 2 / T1 ^ 2) - R * Log(P2 / P1)
+End Function
+Function VresB(Tr, Omega)
+VresB = 0.083 - 0.422 / Tr ^ 1.6 + Omega * 0.139 - 0.172 / Tr ^ 4.2
+End Function
+Sub SaturarLiqPconst()
+Range("B4").Value = Range("AA9").Value
+End Sub
+Sub SaturarVapPconst()
+Range("B4").Value = Range("AB9").Value
+End Sub
+Sub SaturarLiqRU()
+Range("B5") = Range("AA9").Value
+End Sub
+Sub SaturarVapRU()
+Range("B5") = Range("AB9").Value
+End Sub
+Function MCPH(T, T0, A, B, C, D)
+tao = T / T0
+MCPH = A + B / 2 * T0 * (tao + 1) + C / 3 * T0 ^ 2 * (tao ^ 2 + tao + 1) + D / tao / T0 ^ 2
+End Function
+Function MCPS(T, T0, A, B, C, D)
+tao = T / T0
+MCPS = A + (B * T0 + (C * T0 ^ 2 + D / (tao * T0) ^ 2) * (tao / 2 + 0.5)) * ((tao - 1) / Log(tao))
+End Function
+Function Margulles(x1, y1, P1sat, P2sat, P)
+lngama1 = Log(y1 * P / x1 / P1sat)
+lngama2 = Log((1 - y1) * P / (1 - x1) / P2sat)
+Margulles = ((1 - x1) * lngama2 + x1 * lngama1) / x1 / (1 - x1)
+End Function
+Function primeraintdeltaG(T, T0, A, B, C, D)
+primeraintdeltaG = A * (T - T0) + B / 2 * (T ^ 2 - T0 ^ 2) + C / 3 * (T ^ 3 - T0 ^ 3) - D * (1 / T - 1 / T0)
+End Function
+Function segundaintdeltaG(T, T0, A, B, C, D)
+segundaintdeltaG = A * Log(T / T0) + B * (T - T0) + C / 2 * (T ^ 2 - T0 ^ 2) - D / 2 * (1 / T ^ 2 - 1 / T0 ^ 2)
+End Function

@@ -1,0 +1,235 @@
+Option Base 1
+
+Private Sub OptionButton1_Click()
+
+End Sub
+
+Private Sub Ingresarm_Click()
+Label4.Caption = "Flujo desviado (0<m<1)"
+T1mOpt.Caption = "Flujo óptimo desviado"
+End Sub
+
+Private Sub IngresarT1_Click()
+If RU Then
+    Label4.Caption = "T1(°F)"
+Else
+    Label4.Caption = "T1(°C)"
+End If
+T1mOpt.Caption = "T1 para flujo óptimo desviado"
+End Sub
+
+Private Sub IngresarT3satT1_Click()
+If RU Then
+    Label4.Caption = "T3sat-T1(°F)"
+Else
+    Label4.Caption = "T3sat-T1(°C)"
+End If
+T1mOpt.Caption = "T3sat-T1 para flujo óptimo desviado"
+End Sub
+
+Private Sub Label4_Click()
+
+End Sub
+
+Private Sub RU_Click()
+Label1.Caption = "P1=P2=P6 (psia)"
+Label2.Caption = "P3=P7 (psia)"
+Label3.Caption = "P4=P5 (psia)"
+Label4.Caption = WorksheetFunction.Substitute(Label4.Caption, "(°C)", "(°F)")
+Label5.Caption = "T2 (°F)"
+End Sub
+
+Private Sub Run_Click()
+Range("D1:H8").ClearContents
+Range("H10:H15").ClearContents
+Sheets("Info H2O SI").Visible = True
+On Error GoTo errenc:
+P1 = CDbl(P1t.Value)
+P3 = CDbl(P3t.Value)
+P4 = CDbl(P4t.Value)
+If Not T1mOpt Then
+    T1 = CDbl(T1t.Value)
+End If
+T2 = CDbl(T2t.Value)
+efiturb = CDbl(efiturbt.Value)
+efib = CDbl(efibt.Value)
+If P1 > P3 And P3 > P4 And T2 > T1 And efiturb > 0 And efiturb <= 1 And efib > 0 And efib <= 1 And P1 > 0 And P3 > 0 And P4 > 0 Then
+    Dim Tabla(8, 5) As Variant
+    Tabla(1, 1) = "Etapa"
+    For i = 2 To 8
+        Tabla(i, 1) = i - 1
+    Next i
+    If RU Then
+        P1 = P1 * 6.89476
+        P3 = P3 * 6.89476
+        P4 = P4 * 6.89476
+        If IngresarT1 Then
+            T1 = (T1 - 32) * 5 / 9
+        ElseIf IngresarT3satT1 Then
+            T1 = T1 * 5 / 9
+        End If
+        T2 = (T2 - 32) * 5 / 9
+        Tabla(1, 2) = "H (BTU/lbm)"
+        Tabla(1, 3) = "S (BTU/lbm R)"
+        Tabla(1, 4) = "T (°R)"
+        Tabla(1, 5) = "P (psia)"
+    Else
+        Tabla(1, 2) = "H (kJ/kg)"
+        Tabla(1, 3) = "S (kJ/kg K)"
+        Tabla(1, 4) = "T (°C)"
+        Tabla(1, 5) = "P (kPa)"
+    End If
+    Sheets("Info H2O SI").Select
+    Range("B1").Value = P1
+    Range("A4").Value = "T(°C)"
+    Range("B4").Value = T2
+    If Range("H1") = "Vapor sobrecalentado" Then
+        Tabla(3, 2) = Range("E4").Value
+        Tabla(3, 3) = Range("E5").Value
+        Tabla(3, 4) = T2
+        Tabla(3, 5) = P1
+        Range("B1").Value = P3
+        Range("A4").Value = "S (kJ/kgK)"
+        Range("B4").Value = Tabla(3, 3)
+        H3prima = CDbl(Range("E4").Value)
+        W23 = efiturb * (H3prima - Tabla(3, 2))
+        Range("A4").Value = "H (kJ/kg)"
+        Range("B4").Value = Tabla(3, 2) + W23
+        Tabla(4, 3) = Range("E5").Value
+        Tabla(4, 2) = Range("B4").Value
+        Tabla(4, 4) = Range("E1").Value
+        If Tabla(4, 4) < T1 Then
+            Sheets("Simuladores").Select
+            Sheets("Info H2O SI").Visible = False
+            MsgBox "Por la primera ley de la termodinámica, T1 tiene que ser menor a T3sat, que en este caso es de " & Tabla(8, 4) & Mid(Tabla(1, 4), 4, 2)
+            Exit Sub
+        End If
+        Tabla(4, 5) = P3
+        SaturarLiqPconst
+        Tabla(8, 3) = Range("E5").Value
+        Tabla(8, 2) = Range("E4").Value
+        Tabla(8, 4) = Range("E1").Value
+        Tabla(8, 5) = P3
+        Range("B1") = P4
+        Range("A4").Value = "S (kJ/kgK)"
+        Range("B4").Value = Tabla(4, 3)
+        H4prima = Range("E4").Value
+        W34 = efiturb * (H4prima - Tabla(4, 2))
+        Range("A4").Value = "H (kJ/kg)"
+        Range("B4").Value = Tabla(4, 2) + W34
+        Tabla(5, 3) = Range("E5").Value
+        Tabla(5, 2) = Range("B4").Value
+        Tabla(5, 4) = Range("E1").Value
+        Tabla(5, 5) = P4
+        SaturarLiqPconst
+        Tabla(6, 3) = Range("E5").Value
+        Tabla(6, 2) = Range("B4").Value
+        Tabla(6, 4) = Range("E1").Value
+        Tabla(6, 5) = P4
+        V5 = Range("E2").Value
+        W56 = V5 * (P1 - P4) / 1000
+        Range("B4").Value = Tabla(6, 2) + efib * W56
+        Range("B1").Value = P1
+        Tabla(7, 3) = Range("E5").Value
+        Tabla(7, 2) = Range("B4").Value
+        Tabla(7, 4) = Range("E1").Value
+        Tabla(7, 5) = P1
+        Range("B1").Value = P1
+        Range("A4").Value = "T(°C)"
+        If T1mOpt Then
+            T1 = Tabla(8, 4)
+        ElseIf IngresarT3satT1 Then
+            T1 = Tabla(8, 4) - T1
+        ElseIf Ingresarm Then
+            If 0 > T1 Or T1 > 1 Then
+                MsgBox "Por favor ingresar un valor entre 0 y 1 para la proporción del flujo desviado"
+                Sheets("Simuladores").Select
+                Sheets("Info H2O SI").Visible = False
+                Exit Sub
+            End If
+            Range("A4").Value = "H (kJ/kg)"
+            T1 = T1 * (Tabla(4, 2) - Tabla(8, 2)) + Tabla(7, 2)
+        End If
+        Range("B4").Value = T1
+        Tabla(2, 3) = Range("E5").Value
+        Tabla(2, 2) = Range("E4").Value
+        Tabla(2, 4) = Range("E1").Value
+        Tabla(2, 5) = P1
+        eficarnot = 1 - (273.15 + Tabla(6, 4)) / (273.15 + Tabla(3, 4))
+        m = (Tabla(2, 2) - Tabla(7, 2)) / (Tabla(4, 2) - Tabla(8, 2))
+        Qc = m * (Tabla(6, 2) - Tabla(8, 2)) + (1 - m) * (Tabla(6, 2) - Tabla(5, 2))
+        Qh = Tabla(3, 2) - Tabla(2, 2)
+        eficicl = 1 - Abs(Qc / Qh)
+        If Tabla(2, 2) < Tabla(7, 2) Then
+            Sheets("Simuladores").Select
+            Sheets("Info H2O SI").Visible = False
+            MsgBox "No puede haber un cambio negativo de entropía de 6 a 1. Por favor aumentar la T1, o reducir la T3sat-T1 como corresponda."
+            Exit Sub
+        End If
+        If Tabla(2, 4) > Tabla(8, 4) Then
+            Sheets("Simuladores").Select
+            Sheets("Info H2O SI").Visible = False
+            MsgBox "Con el flujo desviado, se obtiene una T1 mayor a T7, o T3sat. Modifica tu flujo desviado."
+            Exit Sub
+        End If
+        Sheets("Simuladores").Select
+        If RU Then
+            For i = 2 To 8
+                Tabla(i, 2) = Tabla(i, 2) * 0.94781712 / 2.20462262
+                Tabla(i, 3) = Tabla(i, 3) * 0.94781712 / 2.20462262 / 1.8
+                Tabla(i, 4) = Tabla(i, 4) * 1.8 + 32
+                Tabla(i, 5) = Tabla(i, 5) * 0.14503774
+            Next i
+            Range("D13") = "Trabajo realizado por el sistema en la turbina (BTU/lbm)"
+            Range("D14") = "Qc condensador (BTU/lbm)"
+            Range("D15") = "Ws bomba (BTU/lbm)"
+        Else
+            Range("D13") = "Trabajo realizado por el sistema en la turbina (kJ/kg)"
+            Range("D14") = "Qc condensador (kJ/kg)"
+            Range("D15") = "Ws bomba (kJ/kg)"
+        End If
+        Range("D1:H8") = Tabla
+        CicloDeRankine.Hide
+        Range("H10") = m
+        Range("H11") = eficicl
+        Range("H12") = eficarnot
+        Range("H13") = efiturbt * ((1 - m) * (Tabla(5, 2) - Tabla(4, 2)) + Tabla(4, 2) - Tabla(3, 2))
+        Range("H14") = m * (Tabla(6, 2) - Tabla(8, 2)) + (1 - m) * (Tabla(6, 2) - Tabla(5, 2))
+        Range("H15") = (Tabla(2, 2) - Tabla(7, 2)) / efibt
+    Else
+        MsgBox "Tiene que entrar vapor sobrecalentado a la turbina, revisar P2 y T2 para que esto se cumpla"
+    End If
+Else
+    MsgBox "Revisar Valores"
+End If
+Sheets("Info H2O SI").Visible = False
+Exit Sub
+errenc:
+Sheets("Info H2O SI").Visible = False
+MsgBox "Revisar valores, probablemente no todos los ingresados sean numéricos"
+End Sub
+
+Private Sub SI_Click()
+Label1.Caption = "P1=P2=P6 (kPa)"
+Label2.Caption = "P3=P7 (kPa)"
+Label3.Caption = "P4=P5 (kPa)"
+Label4.Caption = WorksheetFunction.Substitute(Label4.Caption, "(°F)", "(°C)")
+Label5.Caption = "T2 (°C)"
+End Sub
+
+Private Sub T1mopt_Click()
+If T1mOpt Then
+    T1t.Value = ""
+End If
+End Sub
+
+
+Private Sub T1t_Change()
+If T1mOpt Then
+    T1t.Value = ""
+End If
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
